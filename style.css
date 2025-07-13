@@ -1,1 +1,57 @@
+/* -- Colores base -------------------------------------------------------- */
+:root{
+  --morado:#6a1fb4;     /* títulos, bordes */
+  --celeste:#e3f3ff;    /* fondo tarjeta */
+  --celeste-hover:#d1ecff;
+  --gris-tachado:#aaaaaa;
+}
 
+/* -- Estilo general ------------------------------------------------------ */
+body{
+  font-family:system-ui,sans-serif;
+  background:#fafcff;
+  padding:1rem;
+  max-width:1160px;
+  margin:auto;
+  color:var(--morado);
+}
+h1{
+  text-align:center;
+  margin-bottom:1.5rem;
+}
+
+/* -- Grid de ramos ------------------------------------------------------- */
+#grid{
+  display:grid;
+  gap:.7rem;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+}
+
+/* -- Tarjeta de ramo ----------------------------------------------------- */
+.curso{
+  padding:1rem;
+  border:2px solid var(--morado);
+  border-radius:10px;
+  background:var(--celeste);
+  cursor:pointer;
+  user-select:none;
+  font-weight:500;
+  transition:transform .15s,background .25s;
+}
+.curso:hover{
+  transform:scale(1.03);
+  background:var(--celeste-hover);
+}
+
+/* Aprobado */
+.curso.taken{
+  background:#ded0ff;
+  color:var(--gris-tachado);
+  text-decoration:line-through;
+}
+
+/* Bloqueado (no cumple requisitos) */
+.curso.locked{
+  opacity:.35;
+  cursor:not-allowed;
+}

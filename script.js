@@ -1,7 +1,4 @@
-/* ---------------- DATOS DE LOS RAMOS ---------------- */
 const courses = [
-  /* id, nombre mostrado, requisitos (array de id) */
-  /* ---- PRIMER AÑO ---- */
   {id:"DDAPEP1", title:"Destrezas & Autocuidado I", prereqs:[]},
   {id:"PFICI", title:"Proc. Físicos Clínicos I", prereqs:[]},
   {id:"PQICI", title:"Proc. Químicos Clínicos I", prereqs:[]},
@@ -15,7 +12,6 @@ const courses = [
   {id:"HISTOORAL", title:"Histología Oral", prereqs:["HISTOG","BCG","BASESANA"]},
   {id:"ACYC", title:"Anatomía Cara y Cuello", prereqs:["BASESANA","BCG"]},
 
-  /* ---- SEGUNDO AÑO ---- */
   {id:"SIMI", title:"Simulaciones Prof. I", prereqs:["DDAPEP2","PQICII"]},
   {id:"PATHMICRO", title:"Patología y Microbiología", prereqs:["HISTOORAL","PFICII","ACYC"]},
   {id:"BBFISIO1", title:"Bioquímica & Fisio I", prereqs:["HISTOORAL","PFICII","ACYC"]},
@@ -28,7 +24,6 @@ const courses = [
   {id:"PESII", title:"Promoción Salud II", prereqs:["PSICO1","PESI"]},
   {id:"PSICO2", title:"Bases Psicosociales II", prereqs:["PSICO1"]},
 
-  /* ---- TERCER AÑO ---- */
   {id:"CLNINO1", title:"Clínica Niño I", prereqs:["SIMII","SEMIO"]},
   {id:"CLADUL1", title:"Clínica Adulto I", prereqs:["SEMIO","SIMII"]},
   {id:"CLMAY1", title:"Clínica Adulto Mayor I", prereqs:["SEMIO","SIMII"]},
@@ -43,7 +38,6 @@ const courses = [
   {id:"FARMA", title:"Farmacología", prereqs:["ENFCTRL1"]},
   {id:"IFAM2", title:"Interv. Familiar II", prereqs:[]},
 
-  /* ---- CUARTO AÑO ---- */
   {id:"CLNINO3", title:"Clínica Niño III", prereqs:["CLNINO2"]},
   {id:"CLADUL3", title:"Clínica Adulto III", prereqs:["CLADUL2","CLMAY2","ENFCTRL2"]},
   {id:"CLMAY3", title:"Clínica Adulto Mayor III", prereqs:["CLADUL2","CLMAY2","ENFCTRL2"]},
@@ -58,7 +52,6 @@ const courses = [
   {id:"MANT2", title:"Mant. Salud II", prereqs:["MANT1"]},
   {id:"PROY2", title:"Proyecto Inv. II", prereqs:["PROY1"]},
 
-  /* ---- QUINTO AÑO ---- */
   {id:"CLNINO4", title:"Clínica Niño IV", prereqs:["CLNINO32"]},
   {id:"CLADUL4", title:"Clínica Adulto IV", prereqs:["CLADUL32","CLMAY32"]},
   {id:"CLMAY4", title:"Clínica Adulto Mayor IV", prereqs:["CLADUL32","CLMAY32"]},
@@ -73,30 +66,23 @@ const courses = [
   {id:"CINEE2", title:"Paciente Neces. Esp. II", prereqs:["CINEE1"]},
   {id:"URG_MED", title:"Urgencias Médicas", prereqs:["URG2"]},
   {id:"MANT4", title:"Mant. Salud IV", prereqs:["MANT3"]},
-  {id:"EJEPROY4", title:"Ejecutar Proy. IV", prereqs:["PROY3"]},
+  {id:"EJEPROY4", title:"Ejecutar Proy. IV", prereqs:["PROY3"]}
 ];
 
-/* ------------ CREACIÓN DOM ------------ */
 const grid = document.getElementById("grid");
 
 courses.forEach(c => {
-  const div = document.createElement("div");
-  div.className = "course";
-  div.id = c.id;
-  div.textContent = c.title;
-
-  // guardamos info extra
-  div.dataset.prereqs = JSON.stringify(c.prereqs);
-  div.dataset.approved = "false";
-
-  grid.appendChild(div);
+  const el = document.createElement("div");
+  el.className = "course";
+  el.id = c.id;
+  el.textContent = c.title;
+  el.dataset.prereqs = JSON.stringify(c.prereqs);
+  grid.appendChild(el);
 });
 
-/* ------------- LÓGICA DE ESTADO ------------- */
-function updateAvailability() {
-  courses.forEach(c => {
-    const el = document.getElementById(c.id);
-    const prereqs = c.prereqs;
+function refreshAvailability() {
+  courses.forEach(({ id, prereqs }) => {
+    const el = document.getElementById(id);
     const missing = prereqs.filter(p => !document.getElementById(p).classList.contains("approved"));
     if (missing.length === 0) {
       el.classList.add("available");
@@ -105,34 +91,35 @@ function updateAvailability() {
     } else {
       el.classList.remove("available");
       el.style.cursor = "not-allowed";
-      el.setAttribute("data-tooltip", "Faltan:\n• " + missing.map(id => document.getElementById(id).textContent).join("\n• "));
+      el.setAttribute("data-tooltip", "Faltan:\n• " + missing.map(p => document.getElementById(p).textContent).join("\n• "));
     }
   });
 }
 
-function toggleApproved(el) {
-  if (!el.classList.contains("available")) return; // no desbloqueado
+function toggleCourse(el) {
+  if (!el.classList.contains("available")) return;
   el.classList.toggle("approved");
-  el.dataset.approved = el.classList.contains("approved");
 
-  // opcional: marcar morado si TODOS sus dependientes aprobados
-  courses.forEach(c => {
-    if (c.prereqs.includes(el.id)) {
-      const depEl = document.getElementById(c.id);
-      const stillMissing = c.prereqs.filter(p => !document.getElementById(p).classList.contains("approved"));
-      if (stillMissing.length === 0 && depEl.classList.contains("approved")) {
-        depEl.classList.add("dependents-done");
+  // Marca en morado si todos sus prereqs y dependientes están aprobados
+  courses.forEach(({ id, prereqs }) => {
+    if (prereqs.includes(el.id)) {
+      const child = document.getElementById(id);
+      const stillMissing = prereqs.filter(p => !document.getElementById(p).classList.contains("approved"));
+      if (child.classList.contains("approved") && stillMissing.length === 0) {
+        child.classList.add("dependents-done");
+      } else {
+        child.classList.remove("dependents-done");
       }
     }
   });
 
-  updateAvailability();
+  refreshAvailability();
 }
 
-/* evento global */
 grid.addEventListener("click", e => {
-  if (e.target.classList.contains("course")) toggleApproved(e.target);
+  if (e.target.classList.contains("course")) {
+    toggleCourse(e.target);
+  }
 });
 
-/* inicio */
-updateAvailability();
+refreshAvailability();
